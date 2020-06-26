@@ -61,13 +61,13 @@ export TOPDIR	:=	$(CURDIR)
 all: debug
 
 real:
-#	@git submodule deinit --force libgui
+	@git submodule deinit --force libgui
 	@git submodule update --init --recursive
 	@sed -i 's/-save-temps/-pipe/g' libgui/Makefile
 	@sed -i '/			-ffunction-sections -fdata-sections \\/d' libgui/Makefile
 	@sed -i 's/$$(ARCH) -/$$(ARCH) $$(CFLAGS) -/g' libgui/Makefile
 	@sed -i 's/-DNDEBUG=1 -O2 -s/$(LIBGUIFLAGS)/g' libgui/Makefile
-#	@cd libgui && for patch in $(TOPDIR)/libgui-patches/*.patch; do echo Applying $$patch && git apply $$patch; done && $(MAKE)
+	@cd libgui && for patch in $(TOPDIR)/libgui-patches/*.patch; do echo Applying $$patch && git apply $$patch; done && $(MAKE)
 	@[ -d $(BUILD) ] || mkdir -p $(BUILD)
 	@$(MAKE) -C $(BUILD) -f $(CURDIR)/Makefile BUILD=$(BUILD) $(MAKE_CMD)
 
