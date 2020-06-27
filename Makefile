@@ -35,8 +35,7 @@ CXXFLAGS	:=	$(CFLAGS)
 ASFLAGS		:=	-g $(ARCH)
 LDFLAGS		:=	-g $(ARCH) $(RPXSPECS) $(CFLAGS) -Wl,-Map,$(notdir $*.map)
 
-LIBS		:=	-lgui -lwut -lfreetype -lgd -lpng -ljpeg -lz -lmad \
-				-lvorbisidec -logg -lbz2
+LIBS		:=	-lwut -lgd -lpng -lz
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level
@@ -61,31 +60,20 @@ export TOPDIR	:=	$(CURDIR)
 all: debug
 
 real:
-	@git submodule deinit --force libgui
-	@git submodule update --init --recursive
-	@sed -i 's/-save-temps/-pipe/g' libgui/Makefile
-	@sed -i '/			-ffunction-sections -fdata-sections \\/d' libgui/Makefile
-	@sed -i 's/$$(ARCH) -/$$(ARCH) $$(CFLAGS) -/g' libgui/Makefile
-	@sed -i 's/-DNDEBUG=1 -O2 -s/$(LIBGUIFLAGS)/g' libgui/Makefile
-	@cd libgui && for patch in $(TOPDIR)/libgui-patches/*.patch; do echo Applying $$patch && git apply $$patch; done && $(MAKE)
 	@[ -d $(BUILD) ] || mkdir -p $(BUILD)
 	@$(MAKE) -C $(BUILD) -f $(CURDIR)/Makefile BUILD=$(BUILD) $(MAKE_CMD)
 
 #-------------------------------------------------------------------------------
 clean:
-	@git submodule deinit --force --all
 	@rm -fr debug release $(TARGET).rpx $(TARGET).elf
 
 #-------------------------------------------------------------------------------
 debug:		MAKE_CMD	:=	debug
-debug:		LIBGUIFLAGS	:=	-O0 -g
 debug:		export V	:=	1
 debug:		real
 
 #-------------------------------------------------------------------------------
 release:	MAKE_CMD	:=	all
-release:	LIBGUIFLAGS	:=	-Ofast -flto=auto -fno-fat-lto-objects \
-							-fuse-linker-plugin -s -DNDEBUG=1
 release:	BUILD		:=	release
 release:	real
 
@@ -157,20 +145,6 @@ debug: all
 	@echo $(notdir $<)
 	@$(bin2o)
 
-# https://github.com/devkitPro/devkitppc-rules/pull/2
-define bin2o
-	bin2s -a 32 $< | $(AS) -o $(@)
-	echo "#pragma once" > `(echo $(<F) | tr . _)`.h
-	echo "#include <stddef.h>" >> `(echo $(<F) | tr . _)`.h
-	echo "#include <stdint.h>" >> `(echo $(<F) | tr . _)`.h
-	echo "extern const uint8_t" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' -e 's/[^A-Za-z0-9_]/_/g')`"_end[];" >> `(echo $(<F) | tr . _)`.h
-	echo "extern const uint8_t" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' -e 's/[^A-Za-z0-9_]/_/g')`"[];" >> `(echo $(<F) | tr . _)`.h
-	echo "extern const size_t" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' -e 's/[^A-Za-z0-9_]/_/g')`_size";" >> `(echo $(<F) | tr . _)`.h
-endef
-
-%.png.o %_png.h	:	%.png
-	@echo $(notdir $<)
-	@$(bin2o)
 
 -include $(DEPENDS)
 
