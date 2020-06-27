@@ -41,7 +41,7 @@ LIBS		:=	-lwut -lgd -lpng -lz
 # list of directories containing libraries, this must be the top level
 # containing include and lib
 #-------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(WUT_ROOT) $(TOPDIR)/libgui
+LIBDIRS	:= $(PORTLIBS) $(WUT_ROOT)
 
 
 #-------------------------------------------------------------------------------
@@ -108,7 +108,7 @@ HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
 
 INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(TOPDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(TOPDIR)/$(BUILD) -I$(PORTLIBS_PATH)/ppc/include/freetype2
+			-I$(TOPDIR)/$(BUILD)
 
 LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 VPATH	:=	$(foreach dir,$(SOURCES),$(TOPDIR)/$(dir)) \
